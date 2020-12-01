@@ -1,0 +1,4 @@
+member1: Wesley, Ma, wesley.ma@mail.utoronto.ca, 4169488077
+member2: Tianhao, Yao, tianhao.yao@mail.utoronto.ca, 6477976438
+member3: Joseph, Sokolon, joseph.sokolon@mail.utoronto.ca 7058082706
+
