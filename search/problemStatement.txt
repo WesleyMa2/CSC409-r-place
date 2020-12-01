@@ -1,0 +1,109 @@
+This question focuses on using different technologies to
+express a particular algorithm. 
+
+Input: String targetString, String alphabet
+Question: Search through all strings of length len(targetString), 
+over alphabet looking for x such that targetString=x
+
+We require that you do this exhaustively. That is,
+start with the string "aaa...a" of length len(targetString),
+and use bruteIncrement to increment to the next.
+
+Now if you want motivation for this problem, instead of looking
+for targetString, you can imagine the following question...
+
+Input: String targetHash, int len, String alphabet
+Question: Search through all strings of length len over alphabet
+looking for x such that targetHash = hash(x).
+
+Now you would search for x by enumerating all strings of length len,
+and for each one, computing its hash and checking.
+
+THE QUESTION: Re-implement ideas in parallel/Search* on the following
+platforms:
+
+1) Cuda: sampleCode/parallel/Search.c is a really good start, it is almost
+   cuda ready. You just need to figure out what the kernel
+   code is and what the host code is. You may have to duplicate
+   bruteIncrement in both host and kernel (see why?)
+
+   Place your solution in cuda/
+   Time your solution on various inputs
+
+2) Apache Spark: In this case, consider distributing tuples representing
+   work to be done, and then map the execution of the work onto the tuples,
+   leaving either true or false. Again, distribute work as in sampleCode/parallel/Search.*
+   You can consider the searchPart function call as the tuple to be distributed.
+
+   Place your solution in spark/
+   Time your solution on various inputs
+
+3) GNU Parallel multiple cores, and then multiple cores on multiple hosts.
+   In this case, a good bash script, along with a modified sampleCode/parallel/Search.c
+   could work. The script can repeatedly place some parallel work in a file
+   and then ask parallel to execute it, then check the results and continue.
+
+   Place your solution in gnuParallel/
+   Time your solution on various inputs
+
+-------------------------------------
+Enumerating strings of a fixed length.
+-------------------------------------
+
+This essentially counts base alphabetLen, so 
+
+def bruteIncrement(brute, alphabetLen, incrementBy):
+    i = 0
+    while incrementBy > 0 and i < len(brute):
+        add = incrementBy + brute[i]
+        brute[i] = add % alphabetLen
+        incrementBy = add // alphabetLen
+        i+=1
+    return incrementBy == 0
+
+>>> brute = [0,0,0,0,0,0]
+>>> bruteIncrement(brute, 2, 1)
+True
+>>> brute
+[1, 0, 0, 0, 0, 0]
+>>> bruteIncrement(brute, 2, 1)
+True
+>>> brute
+[0, 1, 0, 0, 0, 0]
+>>> bruteIncrement(brute, 2, 1)
+True
+>>> brute
+[1, 1, 0, 0, 0, 0]
+>>> bruteIncrement(brute, 2, 1)
+True
+>>> brute
+[0, 0, 1, 0, 0, 0]
+>>> bruteIncrement(brute, 2, 1)
+True
+>>> brute
+[1, 0, 1, 0, 0, 0]
+
+So if we want to enumerate all alphabetic strings of length 5, we can 
+
+>>> brute=[0,0,0,0,0]
+>>> alphabet=list("abcdefghijklmnopqrstuvwxyz")
+>>> bruteIncrement(brute, len(alphabet), 1)
+True
+>>> bruteIncrement(brute, len(alphabet), 1)
+True
+>>> bruteIncrement(brute, len(alphabet), 1)
+True
+>>> bruteIncrement(brute, len(alphabet), 1)
+True
+>>> bruteIncrement(brute, len(alphabet), 1)
+True
+>>> "".join([alphabet[b] for b in brute])
+'faaaa'
+
+If I want to jump ahead a bunch...
+
+>>> bruteIncrement(brute, len(alphabet), 10000)
+True
+>>> "".join([alphabet[b] for b in brute])
+'vuoaa'
+
