@@ -19,7 +19,6 @@ int bruteIncrement(char* brute, int alphabetLen, int wordLen, int incrementBy) {
 
 __device__ void cudaStrCmp(char *a, char *b, int len, int* res) {
 	int workerId = threadIdx.x;
-	// printf("[%d] STRCMP %s %s\n", workerId, a, b);
 	for (int i = 0; i < len; i++) {
 		if (a[i] != b[i]) {
 			*res = 0;
@@ -31,12 +30,7 @@ __device__ void cudaStrCmp(char *a, char *b, int len, int* res) {
 __device__ void k_bruteIncrement(char* brute, int alphabetLen, int wordLen, int incrementBy, int *incRes) {
 	int i = 0;
 	int workerId = threadIdx.x;
-	// if (incrementBy == 0) {
-	// 	printf("[%d] reacheddddd\n", workerId);
-	// 	*incRes = 1;
-	// 	return;
-	// }
-	// printf("[%d] reach loop: %d\n", workerId, incrementBy > 0 && i < wordLen);
+	
 	while(incrementBy > 0 && i < wordLen) {
 		int add = incrementBy + brute[i]; 
 		brute[i] = (char)(add % alphabetLen); 
@@ -61,16 +55,15 @@ int any(int *list, int listSize){
 }
 
 __global__ void searchPart(char *targetString, char *alphabet, char *brutePart, int workSize, int wordLen, int alphabetLen, int* results){
-	// Go to the start of my works
 	int workerId = threadIdx.x;
-	// assume false, change if needed
 	results[workerId] = 0;
 	int incRes = FALSE;
 
-	// Receive start of latest chunk, create local copy
+	// Receive start of latest section (WORKER * WORKSIZE), create local copy
 	char* t_brutePart = (char *) malloc((wordLen)* sizeof(char));
 	for (int i = 0; i < wordLen; i++) t_brutePart[i] = brutePart[i];
 	
+	// Increment to start of this thread's chunk (WORKSIZE)
 	k_bruteIncrement(t_brutePart, alphabetLen, wordLen, workSize*workerId, &incRes);
 
 	if(!incRes){
@@ -78,6 +71,8 @@ __global__ void searchPart(char *targetString, char *alphabet, char *brutePart, 
 	}
 	int count = 0;
 	char* out = (char *) malloc((wordLen + 1)* sizeof(char));
+
+	// Increment by one and compare strs after every iteration
 	while(1) {
 		if(count>=workSize) {
 			break;
@@ -129,11 +124,13 @@ int search(char *targetString, char *alphabet, int numWorkers, int workSize){
 	cudaMallocManaged(&k_results, numWorkers* sizeof(int));
 
 	int* results = (int*)malloc(sizeof(int) * numWorkers);
+	// Every iteration, increment brute (WORKERS * WORKSIZE) times
 	while(1){
 
 		cudaMemcpy(k_brutePart, brute, size, cudaMemcpyDefault );
 		for(int i=0;i<numWorkers;i++) k_results[i] = 0;
 
+		// Divide the section into chunks to be worked on in parallel
         searchPart<<<1, numWorkers>>>(k_targetString, k_alphabet, k_brutePart, workSize, *k_wordLen, *k_alphabetLen, k_results);
 		
 		// Wait for GPU to finish before accessing on host
@@ -142,7 +139,6 @@ int search(char *targetString, char *alphabet, int numWorkers, int workSize){
 		if(any(k_results, numWorkers)) return 1;
 
 		// advance to the next major chunk of work
-		// int bruteIncrement(char* brute, int alphabetLen, int wordLen, int incrementBy) {
 		if(!bruteIncrement(brute, alphabetLen, wordLen, workSize*numWorkers)){
 			break;
 		}
