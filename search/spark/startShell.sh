@@ -1,0 +1,1 @@
+/spark/bin/spark-shell --master spark://`hostname -i | awk '{print $1}'`:7077

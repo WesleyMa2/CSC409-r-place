@@ -1,7 +1,7 @@
 version: "3.0"
 services:
   spark-master:
-    image: bde2020/spark-master:2.3.1-hadoop2.7
+    image: bde2020/spark-master:2.4.5-hadoop2.7
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -14,16 +14,22 @@ services:
     deploy:
       placement:
         constraints: [node.role == manager]
-  # spark-worker-1:
-  #   image: bde2020/spark-worker:2.3.1-hadoop2.7
-  #   depends_on:
-  #     - spark-master
-  #   ports:
-  #     - "8081:8081"
-  #   volumes:
-  #     - "/media/sf_data:/data"
-  #   environment:
-  #     - "SPARK_MASTER=spark://spark-master:7077"
+  spark-worker:
+    image: bde2020/spark-worker:2.4.5-hadoop2.7
+    deploy:
+      replicas: 5
+      resources:
+        limits:
+            cpus: "2"
+            memory: 2000M
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    volumes:
+      - "/media/sf_data:/data"
+    environment:
+      - "SPARK_MASTER=spark://spark-master:7077"
   # spark-worker-2:
   #   image: bde2020/spark-worker:2.3.1-hadoop2.7
   #   depends_on:
@@ -34,4 +40,5 @@ services:
   #     - "/media/sf_data:/data"
   #   environment:
   #     - "SPARK_MASTER=spark://spark-master:7077"
-
+networks:
+  spark_default:
