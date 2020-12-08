@@ -13,32 +13,32 @@ def bruteIncrement(brute: Brute, alphabetLen: Int, incrementBy: Long): Brute = {
     return (brute._1, increment == 0)
 }
 
-def toAlpha(a: Array[Int]): Array[Char] = {
+def toAlpha(a: Array[Int], alphabet: String): Array[Char] = {
     return a.map(c => alphabet(c))
 }
-def checkString(t: (Array[Char], Boolean)): Str = {
+def checkString(t: (Array[Char], Boolean), targetString: String): Boolean = {
     return t._2 == true && t._1.mkString("") == targetString
 }
 
-def search(targetString: Str, alphabet: Str, threads: Int, workSize: Int){
+def search(targetString: String, alphabet: String, threads: Int, workSize: Int){
     val wordLen = targetString.length
     val alphabetLen = alphabet.length
 
-    var enumsArr = Array.fill(workSize)((Array.fill(wordLen)(0), true))
-    var resultArr = sc.parallelize(Array.fill(workSize)(false))
+    var enumsArr = Array.fill(threads)((Array.fill(wordLen)(0), true))
+    var resultArr = sc.parallelize(Array.fill(threads)(false))
     // set offsets before loop
     //enumsArr = enumsArr.zipWithIndex().map{case (el: Brute, i: Long) => bruteIncrement(el, alphabetLen, i)}
     for (i <- enumsArr.indices) {
         enumsArr(i) = bruteIncrement(enumsArr(i), alphabetLen, i)
     }
-
+    var roundState = (Array.fill(wordLen)(0), true)
     var iteration = 0
     val maxIterations = (math.pow(alphabetLen, wordLen) / workSize)
     while(iteration <= maxIterations ) {
         if (iteration % 25 == 0) println("ITERATION " + iteration)
         // check if match. enumsArr looks like contains tuples eg ([0,0,1], true)
         val p_enumsArr = sc.parallelize(enumsArr)
-        var resultArr = p_enumsArr.map((t:Brute) => (toAlpha(t._1), t._2)).map(t => checkString(t, targetString))
+        var resultArr = p_enumsArr.map((t:Brute) => (toAlpha(t._1, alphabet), t._2)).map(t => checkString(t, targetString))
         // reduce and see if true, if so break
         if (resultArr.reduce(_ || _) == true) {
             println("FOUND")
@@ -51,6 +51,6 @@ def search(targetString: Str, alphabet: Str, threads: Int, workSize: Int){
     println("NOT FOUND")
 }
 
-val targetString = "this7s"
+val targetString = "ab"
 val alphabet = "abcdefghijklmnopqrstuvwxyz"
-search()
+sc.time(search(targetString, alphabet, 10, 1000))
