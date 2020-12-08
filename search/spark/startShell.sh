@@ -1,1 +1,1 @@
-/spark/bin/spark-shell --master spark://`hostname -i | awk '{print $1}'`:7077
+/virtual/$USER/csc409/spark/spark-3.0.1-bin-hadoop2.7/bin/spark-shell --master spark://`hostname -I | awk '{print $1}'`:7077

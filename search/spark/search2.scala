@@ -21,17 +21,33 @@ def checkString(t: (Array[Char], Boolean), targetString: String): Boolean = {
     return t._2 == true && t._1.mkString("") == targetString
 }
 
+def checkRange(t: (Brute, Int), alphabetLen: Int): Boolean = {
+    var brute = t._1
+    var i = 0
+    while (i < t._2 && brute._2) {
+        val alpha = toAlpha(brute._1, alphabet)
+        if (checkString(alpha, targetString)) {
+            return true
+        }
+        brute = bruteIncrement(brute, alphabetLen, 1)
+    }
+    return false
+}
+
 def search(targetString: String, alphabet: String, threads: Int, workPerRound: Int){
     val workSize = (workPerRound / threads).toInt
     val wordLen = targetString.length
     val alphabetLen = alphabet.length
-    val BASIC_BRUTE = (Array(0), false) // Value that looks like ([0], true) to fill up Arrays
-    val TEMPLATE = Array.fill(workSize){BASIC_BRUTE}
+    val BASIC_BRUTE = (Array.fill(wordLen)(0), false) // Value that looks like ([0], true) to fill up Arrays
+    val TEMPLATE = (BASIC_BRUTE, workSize)
 
-    var threadState = Array.fill(threads)(sc.parallelize(TEMPLATE))
-    var threadResults = Array.fill(threads)(false)
+    // initialize templates ((string, overflow), range)
+
+    var threadState = sc.parallelize(Array.fill(threads)(TEMPLATE))
+    var threadResults = sc.parallelize(Array.fill(threads)(false))
     var roundState = (Array.fill(wordLen)(0), true)
     var iteration = 1
+
     // setup work for each thread eg. threadState(n) = [([0,0], true), ([0,1], true), ...([z,z], false)]
     // for (i <- threadState.indices){
     //     var chunkStart = bruteIncrement(roundState, alphabetLen, i * workSize)
@@ -44,22 +60,30 @@ def search(targetString: String, alphabet: String, threads: Int, workPerRound: I
     //     }
     // }
     while(true) {
+
+        // start each thread state at start of its chunk 
+        threadState = threadState.zipWithIndex().map{case(el, c) => {(bruteIncrement(el._1, alphabetLen, c * workSize), el._2)}}
+
+        // for each thread, iterate through its chunksize checking for matches
+        threadResults = threadState.map(el => checkRange(el, alphabetLen))
+
         // setup work for each thread eg. threadState(n) = [([0,0], true), ([0,1], true), ...([z,z], false)]
-        for (i <- threadState.indices){
-            var chunkStart = bruteIncrement(roundState, alphabetLen, i * workSize)
-            if (chunkStart._2 == true){
-                // println("Thread " + i + " start at " + i * workSize)
-                threadState(i) = threadState(i).zipWithIndex().map{case(_, c) => {bruteIncrement(chunkStart, alphabetLen, c)}}
-            } else {
-                // println("Thread " + i + " out of bounds")
-                threadState(i) = sc.parallelize(Array(BASIC_BRUTE))
-            }
-        }
+        // for (i <- threadState.indices){
+        //     var chunkStart = bruteIncrement(roundState, alphabetLen, i * workSize)
+        //     if (chunkStart._2 == true){
+        //         // println("Thread " + i + " start at " + i * workSize)
+        //         threadState(i) = threadState(i).zipWithIndex().map{case(_, c) => {bruteIncrement(chunkStart, alphabetLen, c)}}
+        //     } else {
+        //         // println("Thread " + i + " out of bounds")
+        //         threadState(i) = sc.parallelize(Array(BASIC_BRUTE))
+        //     }
+        // }
+
         // for each thread, check if string matches, and save result
-        for (i <- threadState.indices){
-            val matchedArr = threadState(i).map((t:Brute) => (toAlpha(t._1, alphabet), t._2)).map(t => checkString(t, targetString))
-            threadResults(i) = matchedArr.reduce(_ || _) == true
-        }
+        // for (i <- threadState.indices){
+        //     val matchedArr = threadState(i).map((t:Brute) => (toAlpha(t._1, alphabet), t._2)).map(t => checkString(t, targetString))
+        //     threadResults(i) = matchedArr.reduce(_ || _) == true
+        // }
 
         println("Checked " + iteration * threads * workSize + " strings")
         // reduce all thread results and see if any are true, if so, break
