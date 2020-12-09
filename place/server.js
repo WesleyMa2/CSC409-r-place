@@ -9,7 +9,7 @@ const wss = new WebSocket.Server({ port: SOCKET_PORT });
 
 // Redis
 const redis = require('redis')
-const DIM = 1000
+const DIM = 100
 const client = redis.createClient({
 	host: 'place-redis.9nutlu.0001.use1.cache.amazonaws.com',
 	port: '6379'
@@ -68,6 +68,12 @@ wss.on('connection', function (ws) {
 		}
 	}
 
+
+	getBitfield((err, data) => {
+		if (err) ws.send('server error!')
+		else ws.send(data)
+	})
+
 	// when we get a message from the client
 	ws.on('message', function (message) {
 		console.log(message);
@@ -75,7 +81,10 @@ wss.on('connection', function (ws) {
 		if (isValidSet(o)) {
 			wss.broadcast(message);
 			board[o.x][o.y] = { 'r': o.r, 'g': o.g, 'b': o.b };
-		}
+			setPixel(o, (err, res) => {
+				if (err) ws.send(err)
+			})
+		} else ws.send('invalid change')
 	});
 });
 
@@ -100,6 +109,11 @@ if (app.get('env') === 'production') {
 
 const chunkSize = DIM * DIM / 10
 const pixelBatchsPerChunk = chunkSize / (64 / 4)
+function setPixel(pixel, callback){
+	const offset = pixel.y * DIM + pixel.x
+	client.bitfield('place', 'SET', 'u4', '#'+offset, pixel.r % 16, callback)
+}
+
 function getBitfield(callback){
 	const bitfield = []
         const batchPromises = []
