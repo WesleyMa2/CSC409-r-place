@@ -1,0 +1,17 @@
+body {
+    background-color: #1c2863 ;
+}
+
+.header {
+    color: white;
+    display: flex;
+    justify-content: center;
+}
+
+#view {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+/*# sourceMappingURL=/styles.8986bff4.css.map */
