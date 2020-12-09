@@ -1,3 +1,4 @@
 place/node_modules/*
 place/client/node_modules/*
 place/client/.cache/*
+place/client/*.js~

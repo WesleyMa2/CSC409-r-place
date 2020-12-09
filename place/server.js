@@ -4,7 +4,7 @@ var express = require('express');
 var app = express();
 
 const SOCKET_PORT = 8081
-const HTTP_PORT = 80
+const HTTP_PORT = 8080
 const wss = new WebSocket.Server({ port: SOCKET_PORT });
 
 // Redis
@@ -97,22 +97,68 @@ if (app.get('env') === 'production') {
 } else {
 	app.use('/', express.static('static_files'));
 }
+
 const chunkSize = DIM * DIM / 10
 const pixelBatchsPerChunk = chunkSize / (64 / 4)
-// retrieve bitfield from redis
+function getBitfield(callback){
+	const bitfield = []
+        const batchPromises = []
+        const batch = client.batch()
+        let count = 0
+        // to save memory, use 10 separate batch gets
+        for (let chunk = 0; chunk < 10; chunk++) {
+                // construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
+                const batchProm = new Promise((res, rej) => {
+                        for (let i = 0; i < pixelBatchsPerChunk; i++) batch.bitfield('place', 'GET', 'i64', '#' + (chunk * chunkSize))
+			count += pixelBatchsPerChunk
+                        batch.exec((err, reply) => {
+                                if (err) rej(err)
+                                else res(reply)
+                        })
+                })
+                batchPromises.push(batchProm)
+        }
+        // upon resolving all batch writes, flatten results and store into an array
+        Promise.all(batchPromises).then(result => {
+                result.forEach(el => {
+                        bitfield.push(el)
+                })
+                callback(null, bitfield.flat(3))
+        }).catch(err => callback(err, null))
+}
+
+// retrieve bitfield from redis (return array of 64bit signed ints, each int storeing 16 pixels)
 app.get("/bitfield", (req, res) => {
-	const bitfield = new Array()
-	const batch = client.batch();
+	/**
+	const bitfield = []
+	const batchPromises = []
+	const batch = client.batch()
+	let count = 0
+	// to save memory, use 10 separate batch gets
 	for (let chunk = 0; chunk < 10; chunk++) {
-		for (let i = 0; i < pixelBatchsPerChunk; i++) batch.bitfield('place', 'GET', 'i64', '#' + (chunk * chunkSize + i))
-		count += pixelBatchsPerChunk
-		batch.exec((reply, err) => {
-			console.log('Set ' + count + 'pixels to 0')
-			if (err) console.log(err)
-			else bitfield.push(res)
+		// construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
+		const batchProm = new Promise((res, rej) => {
+			for (let i = 0; i < pixelBatchsPerChunk; i++) batch.bitfield('place', 'GET', 'i64', '#' + (chunk * chunkSize + i))    
+        		count += pixelBatchsPerChunk
+			batch.exec((err, reply) => {
+				if (err) rej(err)
+				else res(reply)
+			})
 		})
+		batchPromises.push(batchProm)
 	}
-	res.send(bitfield)
+	// upon resolving all batch writes, flatten results and store into an array
+	Promise.all(batchPromises).then(result => {
+		result.forEach(el => {
+			bitfield.push(el)
+		})
+		res.send(bitfield.flat(3))
+	}).catch(err => res.send(err))
+	**/
+	getBitfield((err, data) => {
+		if (err) throw new Error(err)
+		else res.send(data)
+	})
 })
 
 app.listen(HTTP_PORT, function () {
