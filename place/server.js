@@ -15,7 +15,6 @@ const client = redis.createClient({
 	port: '6379'
 });
 
-var DIM = 1000;
 var board = new Array(DIM);
 for (var x = 0; x < DIM; x++) {
 	board[x] = new Array(DIM);
