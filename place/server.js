@@ -4,10 +4,17 @@ var express = require('express');
 var app = express();
 
 const SOCKET_PORT = 8081
-const HTTP_PORT = 8080
+const HTTP_PORT = 80
 const wss = new WebSocket.Server({ port: SOCKET_PORT });
 
-var DIM = 1000;
+// Redis
+const redis = require('redis')
+const DIM = 1000
+const client = redis.createClient({
+	host: 'place-redis.9nutlu.0001.use1.cache.amazonaws.com',
+	port: '6379'
+});
+
 var board = new Array(DIM);
 for (var x = 0; x < DIM; x++) {
 	board[x] = new Array(DIM);
@@ -90,6 +97,23 @@ if (app.get('env') === 'production') {
 } else {
 	app.use('/', express.static('static_files'));
 }
+const chunkSize = DIM * DIM / 10
+const pixelBatchsPerChunk = chunkSize / (64 / 4)
+// retrieve bitfield from redis
+app.get("/bitfield", (req, res) => {
+	const bitfield = new Array()
+	const batch = client.batch();
+	for (let chunk = 0; chunk < 10; chunk++) {
+		for (let i = 0; i < pixelBatchsPerChunk; i++) batch.bitfield('place', 'GET', 'i64', '#' + (chunk * chunkSize + i))
+		count += pixelBatchsPerChunk
+		batch.exec((reply, err) => {
+			console.log('Set ' + count + 'pixels to 0')
+			if (err) console.log(err)
+			else bitfield.push(res)
+		})
+	}
+	res.send(bitfield)
+})
 
 app.listen(HTTP_PORT, function () {
 	console.log('mode: ' + app.get('env'))
