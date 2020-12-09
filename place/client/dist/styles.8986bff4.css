@@ -14,4 +14,15 @@ body {
     justify-content: center;
 }
 
+#canvas {
+    background-color: white;
+    image-rendering: pixelated;
+}
+
+@-moz-document url-prefix() {
+    #canvas{
+        image-rendering: crisp-edges;
+    }
+}
+
 /*# sourceMappingURL=/styles.8986bff4.css.map */
