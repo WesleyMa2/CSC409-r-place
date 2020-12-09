@@ -4,7 +4,7 @@ var express = require('express');
 var app = express();
 
 const SOCKET_PORT = 8081
-const HTTP_PORT = 8080
+const HTTP_PORT = 80
 const wss = new WebSocket.Server({ port: SOCKET_PORT });
 
 // Redis
