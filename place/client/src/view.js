@@ -1,71 +1,67 @@
-import * as PIXI from 'pixi.js'
-import { Viewport } from 'pixi-viewport'
-
-let type = "WebGL"
-if(!PIXI.utils.isWebGLSupported()){
-  type = "canvas"
-}
-
-const WIDTH = 600
-const HEIGHT = 600
-
-PIXI.utils.sayHello(type)
-PIXI.SCALE_MODES.DEFAULT = PIXI.SCALE_MODES.LINEAR;
-
-
 export default class View {
     constructor() {
-        this.app = new PIXI.Application({ 
-            width: 1200, 
-            height: 800, 
-            backgroundColor: 0xdfe5f0
-        });
-        this.viewport = new Viewport({
-            screenWidth: 1200,
-            screenHeight: 800,
-            worldWidth: 16 * 1000,
-            worldHeight: 16 * 1000,
-            interaction: this.app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
-        })
-        this.app.stage.addChild(this.viewport)
-        this.viewport.drag().wheel()
-        .clampZoom({
-            minWidth: 16 * 100,
-            maxWidth: 16 * 1000
-        }).clamp({
-            direction: "all"
-        })
-        document.getElementById("view").appendChild(this.app.view);
+        this.canvas = document.getElementById('canvas')
+        this.ctx = this.canvas.getContext('2d')
+
+        this.zoomScale = 4
+        this.isMouseDown = false
+        this.mouseDownPos = {x: 0, y: 0}
+
+        // register zoom + scroll handlers
+        this.canvas.addEventListener("wheel", this.zoom)
+        this.canvas.addEventListener('mousedown', this.mouseDown)
+        this.canvas.addEventListener('mousemove', this.mouseMove)
+        this.canvas.addEventListener('mouseup', this.mouseUp)
     }
 
     renderInitialMap(pixels) {
-        const renderer = this.app.renderer;
-        console.log(renderer)
-        const initial = new PIXI.Container()
-        
-        pixels.forEach(pixel => {
-            const sprite = this.getPixel(pixel)
-            initial.addChild(sprite)
-        });
-        const texture = renderer.generateTexture(initial, PIXI.SCALE_MODES.LINEAR, 1)
-        const background = new PIXI.Sprite(texture)
-        background.cacheAsBitmap = true
-        this.viewport.addChild(background)
+        console.log(pixels.length)
+        const image = new ImageData(pixels, 1000, 1000)
+        this.ctx.putImageData(image, 0, 0)
     }
 
-    addPixel(pixel) {
-        const sprite = this.getPixel(pixel)
-        this.app.stage.addChild(sprite)
+    zoom = (event) => {
+        event.preventDefault()
+        const zoomEl = document.getElementById('zoom')
+
+        // zoom in
+        if (event.deltaY < 0) {
+            this.zoomScale = 40
+        } else {
+            this.zoomScale = 4
+        }
+        zoomEl.style.transform = `scale(${this.zoomScale})`;
     }
 
-    getPixel(pixel) {
-        const sprite = new PIXI.Graphics()
-        sprite.cacheAsBitmap = true
-        sprite.beginFill(getColor(pixel[2]))
-        sprite.drawRect(0, 0, 16, 16)
-        sprite.x = pixel[0] * 16
-        sprite.y = pixel[1] * 16
-        return sprite
+    mouseDown = (event) => {
+        event.preventDefault()
+        const panEl = document.getElementById('pan')
+
+        if (event.button === 0) {
+            this.isMouseDown = true
+            this.mouseDownPos = { x: event.screenX, y: event.screenY}
+            console.log(panEl.style.transform)
+        }
+
+    }
+
+    mouseMove = (event) => {
+        event.preventDefault()
+        const panEl = document.getElementById('pan')
+        if (this.isMouseDown) {
+            const xOffset = event.screenX - this.mouseDownPos.x
+            const yOffset = event.screenY - this.mouseDownPos.y
+            panEl.style.transform = `translate(${xOffset}px, ${yOffset}px)`
+        }
+    }
+
+    mouseUp = (event) => {
+        event.preventDefault()
+        const panEl = document.getElementById('pan')
+
+        if (event.button === 0) {
+            this.isMouseDown = false
+        }
     }
 }
 

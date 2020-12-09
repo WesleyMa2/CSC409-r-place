@@ -10,10 +10,7 @@
     "dev": "parcel src/index.html",
     "build": "parcel build src/index.html"
   },
-  "dependencies": {
-    "pixi-viewport": "^4.18.1",
-    "pixi.js": "^5.3.3"
-  },
+  "dependencies": {},
   "devDependencies": {
     "cssnano": "^4.1.10"
   }

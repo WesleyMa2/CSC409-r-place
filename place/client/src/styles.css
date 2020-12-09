@@ -13,3 +13,14 @@ body {
     flex-direction: row;
     justify-content: center;
 }
+
+#canvas {
+    background-color: white;
+    image-rendering: pixelated;
+}
+
+@-moz-document url-prefix() {
+    #canvas{
+        image-rendering: crisp-edges;
+    }
+}

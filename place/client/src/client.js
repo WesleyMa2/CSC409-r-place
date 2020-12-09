@@ -2,20 +2,14 @@ import View from './view'
 
 let app = new View()
 
-
 // generate random pixels
-const pixels = [] 
-for(let i = 0; i < 10000; i++) {
-    const x = Math.floor(Math.random() * 1000)
-    const y = Math.floor(Math.random() * 1000)
-    const color = Math.floor(Math.random() * 16)
-    if (i % 10000 === 0) {
-        console.log(i)
-    }
-    pixels.push([x, y, color])
+var uintc8 = new Uint8ClampedArray(4 * 1000000);
+
+for(let i = 0; i < 4000000; i++) {
+    uintc8[i] = Math.floor(Math.random() * 256)
 }
 
-app.renderInitialMap(pixels)
+app.renderInitialMap(uintc8)
 
 // pixels = [[x, y, color]]
 
