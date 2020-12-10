@@ -43,15 +43,14 @@ export default class View {
 
     }
 
-    renderInitialMap(pixels) {
-        console.log('rendering ma')
+    renderMap(pixels) {
         const texture = PIXI.Texture.fromBuffer(pixels, 1000, 1000)
         const sprite = new PIXI.Sprite(texture);
         this.viewport.addChild(sprite)
     }
 
     clickPixel = (e) => {
-        console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(this.colorId) + ' with color ID ' + this.colorId)
+        // console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(this.colorId) + ' with color ID ' + this.colorId)
         const reqBody = {
             x: Math.floor(e.world.x),
             y: Math.floor(e.world.y),
