@@ -1,23 +1,48 @@
+import * as PIXI from 'pixi.js-legacy'
+import { Viewport } from 'pixi-viewport'
+
 export default class View {
     constructor() {
         this.canvas = document.getElementById('canvas')
-        this.ctx = this.canvas.getContext('2d')
+        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, view: this.canvas, backgroundColor: 0xFFFFFF})
 
         this.zoomScale = 4
         this.isMouseDown = false
         this.mouseDownPos = {x: 0, y: 0}
 
+        this.viewport = new Viewport({
+            screenWidth: window.innerWidth,
+            screenHeight: window.innerHeight,
+            worldWidth: 1000,
+            worldHeight: 1000,
+        
+            interaction: this.app.renderer.plugins.interaction // the interaction module is important for wheel to work properly when renderer.view is placed or scaled
+        })
+
+        this.app.stage.addChild(this.viewport)
+
+        this.viewport.drag()
+        .wheel({ smooth: 10})
+        .clamp({ direction: 'all'})
+        .clampZoom({ maxScale: 32, minScale: 1})
+
+
         // register zoom + scroll handlers
-        this.canvas.addEventListener("wheel", this.zoom)
-        this.canvas.addEventListener('mousedown', this.mouseDown)
-        this.canvas.addEventListener('mousemove', this.mouseMove)
-        this.canvas.addEventListener('mouseup', this.mouseUp)
+        // this.canvas.addEventListener("wheel", this.zoom)
+        // this.canvas.addEventListener('mousedown', this.mouseDown)
+        // this.canvas.addEventListener('mousemove', this.mouseMove)
+        // this.canvas.addEventListener('mouseup', this.mouseUp)
     }
 
     renderInitialMap(pixels) {
-        console.log(pixels.length)
-        const image = new ImageData(pixels, 1000, 1000)
-        this.ctx.putImageData(image, 0, 0)
+        // const canvas = document.createElement('canvas');
+        // canvas.style.imageRendering = 'pixelated'
+        // this.ctx = canvas.getContext('2d')
+        // const image = new ImageData(pixels, 1000, 1000)
+        // this.ctx.putImageData(image, 0, 0)
+        const texture = PIXI.Texture.fromBuffer(pixels, 1000, 1000)
+        const sprite = new PIXI.Sprite(texture);
+        this.viewport.addChild(sprite)
     }
 
     zoom = (event) => {
