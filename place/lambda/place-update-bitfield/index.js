@@ -1,4 +1,4 @@
-exports.handler = async (event) => {
+exports.handler = async (event, context) => {
     // Pushes an update to redis (first checks that the user isn't rate limited)
     const redis = require('redis')
     const { promisify } = require("util");
@@ -8,18 +8,33 @@ exports.handler = async (event) => {
         port: '6379'
     });
     const bitfieldAsync = promisify(client.bitfield).bind(client);
-
-    ({ x, y, color } = event)
+    const getAsync = promisify(client.get).bind(client);
+    const setAsync = promisify(client.set).bind(client);
+    const expireAsync = promisify(client.expire).bind(client);
+    ({ x, y, color } = event['body-json'])
     if (!(Number.isInteger(x) && x >= 0 && x < DIM) ||
         !(Number.isInteger(y) && y >= 0 && y < DIM) ||
         !(Number.isInteger(color) && color >= 0 && color < 16)
     ) return {
         statusCode: 400,
-        body: 'Bad request',
-    };
-
-    const offset = y * DIM + x
+        body: "Bad Request",
+    }
     try {
+        // check that user isn't rate limited currently
+        const ip = event.context['source-ip']
+        const isLimited = await getAsync(ip)
+        if (isLimited) {
+            return {
+                statusCode: 429,
+                body: `Rate limited (${ip})`,
+            }
+        } else {
+            await setAsync(ip, 0)
+            await expireAsync(ip, 10)
+        }
+
+        // update the bitfield
+        const offset = y * DIM + x
         await bitfieldAsync('place', 'SET', 'u4', '#' + offset, color)
         return {
             statusCode: 200,
@@ -28,7 +43,7 @@ exports.handler = async (event) => {
     } catch (err) {
         return {
             statusCode: 500,
-            body: JSON.stringify(err),
-        };
+            body: "Internal Server Error",
+        }
     }
 };
