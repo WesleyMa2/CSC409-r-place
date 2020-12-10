@@ -3,6 +3,11 @@ import { Viewport } from 'pixi-viewport'
 
 export default class View {
     constructor() {
+        let type = "WebGL"
+        if(!PIXI.utils.isWebGLSupported()){
+          type = "canvas"
+        }
+        
         this.canvas = document.getElementById('canvas')
         this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, view: this.canvas, backgroundColor: 0xFFFFFF})
 
