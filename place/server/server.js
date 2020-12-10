@@ -33,26 +33,12 @@ wss.broadcast = function broadcast(data) {
 	});
 };
 
-// for heartbeat to make sure connection is alive 
+// for heartbeat to make sure client connection is alive 
 function noop() { }
 function heartbeat() {
 	this.isAlive = true;
 }
 
-function isValidSet(o) {
-	var isValid = false;
-	try {
-		isValid =
-			Number.isInteger(o.x) && o.x != null && 0 <= o.x && o.x < DIM &&
-			Number.isInteger(o.y) && o.y != null && 0 <= o.y && o.y < DIM &&
-			Number.isInteger(o.r) && o.r != null && 0 <= o.r && o.r <= 255 &&
-			Number.isInteger(o.g) && o.g != null && 0 <= o.g && o.g <= 255 &&
-			Number.isInteger(o.b) && o.b != null && 0 <= o.b && o.b <= 255;
-	} catch (err) {
-		isValid = false;
-	}
-	return isValid;
-}
 wss.on('connection', function (ws) {
 	// heartbeat
 	ws.isAlive = true;
@@ -70,7 +56,7 @@ wss.on('connection', function (ws) {
 });
 
 // heartbeat (ping) sent to all clients
-const interval = setInterval(function ping() {
+setInterval(function ping() {
 	wss.clients.forEach(function each(ws) {
 		if (ws.isAlive === false) return ws.terminate();
 
@@ -113,6 +99,10 @@ function getBitfield(callback){
                 callback(null, bitfield.flat())
         }).catch(err => callback(err, null))
 }
+// ping function for aws loadpalance healthchecks
+app.get("/ping", (req, res) => {
+	res.sendStatus(200)
+})
 
 // retrieve bitfield from redis (return array of 64bit signed ints, each int storeing 16 pixels)
 app.get("/bitfield", (req, res) => {
