@@ -53048,74 +53048,21 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+var type = "WebGL";
+
+if (!PIXI.utils.isWebGLSupported()) {
+  type = "canvas";
+}
 
 var View = /*#__PURE__*/function () {
   function View() {
-    var _this = this;
-
     _classCallCheck(this, View);
 
-    _defineProperty(this, "zoom", function (event) {
-      event.preventDefault();
-      var zoomEl = document.getElementById('zoom'); // zoom in
-
-      if (event.deltaY < 0) {
-        _this.zoomScale = 40;
-      } else {
-        _this.zoomScale = 4;
-      }
-
-      zoomEl.style.transform = "scale(".concat(_this.zoomScale, ")");
-    });
-
-    _defineProperty(this, "mouseDown", function (event) {
-      event.preventDefault();
-      var panEl = document.getElementById('pan');
-
-      if (event.button === 0) {
-        _this.isMouseDown = true;
-        _this.mouseDownPos = {
-          x: event.screenX,
-          y: event.screenY
-        };
-        console.log(panEl.style.transform);
-      }
-    });
-
-    _defineProperty(this, "mouseMove", function (event) {
-      event.preventDefault();
-      var panEl = document.getElementById('pan');
-
-      if (_this.isMouseDown) {
-        var xOffset = event.screenX - _this.mouseDownPos.x;
-        var yOffset = event.screenY - _this.mouseDownPos.y;
-        panEl.style.transform = "translate(".concat(xOffset, "px, ").concat(yOffset, "px)");
-      }
-    });
-
-    _defineProperty(this, "mouseUp", function (event) {
-      event.preventDefault();
-      var panEl = document.getElementById('pan');
-
-      if (event.button === 0) {
-        _this.isMouseDown = false;
-      }
-    });
-
-    this.canvas = document.getElementById('canvas');
     this.app = new PIXI.Application({
       width: window.innerWidth,
       height: window.innerHeight,
-      view: this.canvas,
       backgroundColor: 0xFFFFFF
     });
-    this.zoomScale = 4;
-    this.isMouseDown = false;
-    this.mouseDownPos = {
-      x: 0,
-      y: 0
-    };
     this.viewport = new _pixiViewport.Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
@@ -53132,21 +53079,13 @@ var View = /*#__PURE__*/function () {
     }).clampZoom({
       maxScale: 32,
       minScale: 1
-    }); // register zoom + scroll handlers
-    // this.canvas.addEventListener("wheel", this.zoom)
-    // this.canvas.addEventListener('mousedown', this.mouseDown)
-    // this.canvas.addEventListener('mousemove', this.mouseMove)
-    // this.canvas.addEventListener('mouseup', this.mouseUp)
+    });
+    document.body.appendChild(this.app.view);
   }
 
   _createClass(View, [{
     key: "renderInitialMap",
     value: function renderInitialMap(pixels) {
-      // const canvas = document.createElement('canvas');
-      // canvas.style.imageRendering = 'pixelated'
-      // this.ctx = canvas.getContext('2d')
-      // const image = new ImageData(pixels, 1000, 1000)
-      // this.ctx.putImageData(image, 0, 0)
       var texture = PIXI.Texture.fromBuffer(pixels, 1000, 1000);
       var sprite = new PIXI.Sprite(texture);
       this.viewport.addChild(sprite);
@@ -53229,7 +53168,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64619" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49669" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

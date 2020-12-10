@@ -1,19 +1,14 @@
 import * as PIXI from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 
-export default class View {
-    constructor() {
-        let type = "WebGL"
-        if(!PIXI.utils.isWebGLSupported()){
-          type = "canvas"
-        }
-        
-        this.canvas = document.getElementById('canvas')
-        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, view: this.canvas, backgroundColor: 0xFFFFFF})
+let type = "WebGL"
+if(!PIXI.utils.isWebGLSupported()){
+  type = "canvas"
+}
 
-        this.zoomScale = 4
-        this.isMouseDown = false
-        this.mouseDownPos = {x: 0, y: 0}
+export default class View {
+    constructor() {       
+        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, backgroundColor: 0xFFFFFF})
 
         this.viewport = new Viewport({
             screenWidth: window.innerWidth,
@@ -31,67 +26,13 @@ export default class View {
         .clamp({ direction: 'all'})
         .clampZoom({ maxScale: 32, minScale: 1})
 
-
-        // register zoom + scroll handlers
-        // this.canvas.addEventListener("wheel", this.zoom)
-        // this.canvas.addEventListener('mousedown', this.mouseDown)
-        // this.canvas.addEventListener('mousemove', this.mouseMove)
-        // this.canvas.addEventListener('mouseup', this.mouseUp)
+        document.body.appendChild(this.app.view);
     }
 
     renderInitialMap(pixels) {
-        // const canvas = document.createElement('canvas');
-        // canvas.style.imageRendering = 'pixelated'
-        // this.ctx = canvas.getContext('2d')
-        // const image = new ImageData(pixels, 1000, 1000)
-        // this.ctx.putImageData(image, 0, 0)
         const texture = PIXI.Texture.fromBuffer(pixels, 1000, 1000)
         const sprite = new PIXI.Sprite(texture);
         this.viewport.addChild(sprite)
-    }
-
-    zoom = (event) => {
-        event.preventDefault()
-        const zoomEl = document.getElementById('zoom')
-
-        // zoom in
-        if (event.deltaY < 0) {
-            this.zoomScale = 40
-        } else {
-            this.zoomScale = 4
-        }
-        zoomEl.style.transform = `scale(${this.zoomScale})`;
-    }
-
-    mouseDown = (event) => {
-        event.preventDefault()
-        const panEl = document.getElementById('pan')
-
-        if (event.button === 0) {
-            this.isMouseDown = true
-            this.mouseDownPos = { x: event.screenX, y: event.screenY}
-            console.log(panEl.style.transform)
-        }
-
-    }
-
-    mouseMove = (event) => {
-        event.preventDefault()
-        const panEl = document.getElementById('pan')
-        if (this.isMouseDown) {
-            const xOffset = event.screenX - this.mouseDownPos.x
-            const yOffset = event.screenY - this.mouseDownPos.y
-            panEl.style.transform = `translate(${xOffset}px, ${yOffset}px)`
-        }
-    }
-
-    mouseUp = (event) => {
-        event.preventDefault()
-        const panEl = document.getElementById('pan')
-
-        if (event.button === 0) {
-            this.isMouseDown = false
-        }
     }
 }
 
