@@ -8,7 +8,8 @@ if(!PIXI.utils.isWebGLSupported()){
 
 export default class View {
     constructor() {       
-        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, backgroundColor: 0xFFFFFF})
+        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, backgroundColor: 0x000000})
+        // this.app = new PIXI.Application({ width: 1000, height: 1000, backgroundColor: 0x000000})
 
         this.viewport = new Viewport({
             screenWidth: window.innerWidth,
@@ -30,6 +31,7 @@ export default class View {
     }
 
     renderInitialMap(pixels) {
+        console.log('rendering ma')
         const texture = PIXI.Texture.fromBuffer(pixels, 1000, 1000)
         const sprite = new PIXI.Sprite(texture);
         this.viewport.addChild(sprite)
