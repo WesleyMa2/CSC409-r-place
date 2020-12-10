@@ -2175,7 +2175,7 @@ earcut.flatten = function (data) {
     return result;
 };
 
-},{}],"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/node-libs-browser/node_modules/punycode/punycode.js":[function(require,module,exports) {
+},{}],"../../../../../AppData/Local/Yarn/Data/global/node_modules/node-libs-browser/node_modules/punycode/punycode.js":[function(require,module,exports) {
 var global = arguments[3];
 var define;
 /*! https://mths.be/punycode v1.4.1 by @mathias */
@@ -2712,7 +2712,7 @@ var define;
 
 }(this));
 
-},{}],"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/url/util.js":[function(require,module,exports) {
+},{}],"../../../../../AppData/Local/Yarn/Data/global/node_modules/url/util.js":[function(require,module,exports) {
 'use strict';
 
 module.exports = {
@@ -2730,7 +2730,7 @@ module.exports = {
   }
 };
 
-},{}],"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/querystring-es3/decode.js":[function(require,module,exports) {
+},{}],"../../../../../AppData/Local/Yarn/Data/global/node_modules/querystring-es3/decode.js":[function(require,module,exports) {
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2816,7 +2816,7 @@ module.exports = function (qs, sep, eq, options) {
 var isArray = Array.isArray || function (xs) {
   return Object.prototype.toString.call(xs) === '[object Array]';
 };
-},{}],"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/querystring-es3/encode.js":[function(require,module,exports) {
+},{}],"../../../../../AppData/Local/Yarn/Data/global/node_modules/querystring-es3/encode.js":[function(require,module,exports) {
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -2905,12 +2905,12 @@ var objectKeys = Object.keys || function (obj) {
 
   return res;
 };
-},{}],"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/querystring-es3/index.js":[function(require,module,exports) {
+},{}],"../../../../../AppData/Local/Yarn/Data/global/node_modules/querystring-es3/index.js":[function(require,module,exports) {
 'use strict';
 
 exports.decode = exports.parse = require('./decode');
 exports.encode = exports.stringify = require('./encode');
-},{"./decode":"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/querystring-es3/decode.js","./encode":"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/querystring-es3/encode.js"}],"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/url/url.js":[function(require,module,exports) {
+},{"./decode":"../../../../../AppData/Local/Yarn/Data/global/node_modules/querystring-es3/decode.js","./encode":"../../../../../AppData/Local/Yarn/Data/global/node_modules/querystring-es3/encode.js"}],"../../../../../AppData/Local/Yarn/Data/global/node_modules/url/url.js":[function(require,module,exports) {
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -3644,7 +3644,7 @@ Url.prototype.parseHost = function() {
   if (host) this.hostname = host;
 };
 
-},{"punycode":"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/node-libs-browser/node_modules/punycode/punycode.js","./util":"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/url/util.js","querystring":"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/querystring-es3/index.js"}],"../node_modules/@pixi/constants/lib/constants.es.js":[function(require,module,exports) {
+},{"punycode":"../../../../../AppData/Local/Yarn/Data/global/node_modules/node-libs-browser/node_modules/punycode/punycode.js","./util":"../../../../../AppData/Local/Yarn/Data/global/node_modules/url/util.js","querystring":"../../../../../AppData/Local/Yarn/Data/global/node_modules/querystring-es3/index.js"}],"../node_modules/@pixi/constants/lib/constants.es.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -5239,7 +5239,7 @@ function getResolutionOfUrl(url, defaultValue) {
  * console.log(PIXI.utils.hex2string(0xff00ff)); // returns: "#ff00ff"
  * @namespace PIXI.utils
  */
-},{"@pixi/settings":"../node_modules/@pixi/settings/lib/settings.es.js","eventemitter3":"../node_modules/eventemitter3/index.js","earcut":"../node_modules/earcut/src/earcut.js","url":"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/url/url.js","@pixi/constants":"../node_modules/@pixi/constants/lib/constants.es.js"}],"../node_modules/@pixi/math/lib/math.es.js":[function(require,module,exports) {
+},{"@pixi/settings":"../node_modules/@pixi/settings/lib/settings.es.js","eventemitter3":"../node_modules/eventemitter3/index.js","earcut":"../node_modules/earcut/src/earcut.js","url":"../../../../../AppData/Local/Yarn/Data/global/node_modules/url/url.js","@pixi/constants":"../node_modules/@pixi/constants/lib/constants.es.js"}],"../node_modules/@pixi/math/lib/math.es.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -53058,6 +53058,7 @@ var View = /*#__PURE__*/function () {
   function View() {
     _classCallCheck(this, View);
 
+    var colorId = 0;
     this.app = new PIXI.Application({
       width: window.innerWidth,
       height: window.innerHeight,
@@ -53081,6 +53082,13 @@ var View = /*#__PURE__*/function () {
       minScale: 1
     });
     document.body.appendChild(this.app.view);
+    this.viewport.on('clicked', function (e) {
+      return console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(colorId) + ' with color ID ' + colorId);
+    });
+    document.getElementById("selector").addEventListener("pointerdown", function (e) {
+      colorId = e.target.id;
+      document.getElementById("currcolor").style.backgroundColor = getColor(colorId);
+    });
   }
 
   _createClass(View, [{
@@ -53098,7 +53106,11 @@ var View = /*#__PURE__*/function () {
 exports.default = View;
 
 function getColor(colorId) {
-  var colors = [0xFFFFFF, 0xE4E4E4, 0x888888, 0x222222, 0xFFA7D1, 0xE50000, 0xE59500, 0xA06A42, 0xE5D900, 0x94E044, 0x02BE01, 0x00D3DD, 0x0083C7, 0x0000EA, 0xCF6EE4, 0x820080];
+  var colors = ["#FFFFFF", //white
+  "#E4E4E4", //white
+  "#888888", //grey
+  "#222222", //dark grey
+  "#FFA7D1", "#E50000", "#E59500", "#A06A42", "#E5D900", "#94E044", "#02BE01", "#00D3DD", "#0083C7", "#0000EA", "#CF6EE4", "#820080"];
 
   if (colorId > 0 && colorId < 16) {
     return colors[colorId];
@@ -53140,7 +53152,7 @@ app.renderInitialMap(uintc8); // each int, convert to binary and split into 4 pi
 // AND 0000 0000 0000 1111 
 // BITSHIFT 
 // map 16 colors to [r, g, b, a]
-},{"./view":"view.js"}],"../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./view":"view.js"}],"../../../../../AppData/Local/Yarn/Data/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -53168,7 +53180,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49669" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58609" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
@@ -53344,5 +53356,5 @@ function hmrAcceptRun(bundle, id) {
     return true;
   }
 }
-},{}]},{},["../../../../../../../../../home/sokojoe/.config/yarn/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","client.js"], null)
+},{}]},{},["../../../../../AppData/Local/Yarn/Data/global/node_modules/parcel-bundler/src/builtins/hmr-runtime.js","client.js"], null)
 //# sourceMappingURL=/client.62456f60.js.map
