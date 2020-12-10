@@ -15,6 +15,11 @@ const client = redis.createClient({
 	port: '6379'
 });
 
+const subscriber = redis.createClient({
+	host: 'place-redis.9nutlu.0001.use1.cache.amazonaws.com',
+	port: "6379"
+})
+
 
 wss.on('close', function () {
 	console.log('disconnected');
@@ -59,23 +64,9 @@ wss.on('connection', function (ws) {
 			ws.send('server error!') 
 		} else {
 			const buffer = new Int32Array(data.flat()).buffer
-			console.log(buffer.length)
 			ws.send(buffer)
 		}
 	})
-
-	// when we get a message from the client
-	ws.on('message', function (message) {
-		console.log(message);
-		var o = JSON.parse(message);
-		if (isValidSet(o)) {
-			wss.broadcast(message);
-			board[o.x][o.y] = { 'r': o.r, 'g': o.g, 'b': o.b };
-			setPixel(o, (err, res) => {
-				if (err) ws.send(err)
-			})
-		} else ws.send('invalid change')
-	});
 });
 
 // heartbeat (ping) sent to all clients
@@ -88,21 +79,15 @@ const interval = setInterval(function ping() {
 	});
 }, 30000);
 
-// static client files
-if (app.get('env') === 'production') {
-	app.get("/", (req, res) => {
-		res.status(301).redirect("http://csc409-place-client.s3-website.ca-central-1.amazonaws.com")
-	})
-} else {
-	app.use('/', express.static('static_files'));
-}
-
 const chunkSize = 4 * DIM * DIM / 10 // 400,000 bits
 const batchRequestNum = chunkSize / 32 // 6,250 requests
-function setPixel(pixel, callback){
-	const offset = pixel.y * DIM + pixel.x
-	client.bitfield('place', 'SET', 'u4', '#'+offset, pixel.r % 16, callback)
-}
+
+// subscribe to redis for pixel updates
+subscriber.on("message", (channel, message) => {
+	console.log(channel, message)
+	wss.broadcast(message)
+})
+subscriber.subscribe("pixel-updates")
 
 function getBitfield(callback){
 	const bitfield = []
