@@ -1,5 +1,8 @@
 import * as PIXI from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
+import * as request from 'request'
+
+const LAMDA_URL = 'https://fsc2uv90z3.execute-api.us-east-1.amazonaws.com/prod'
 
 let type = "WebGL"
 if(!PIXI.utils.isWebGLSupported()){
@@ -8,7 +11,7 @@ if(!PIXI.utils.isWebGLSupported()){
 
 export default class View {    
     constructor() {      
-        let colorId = 0; 
+        this.colorId = 0; 
         this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, backgroundColor: 0x423f3f})
 
         this.viewport = new Viewport({
@@ -30,12 +33,11 @@ export default class View {
 
         document.body.appendChild(this.app.view);
 
-        this.viewport.on('clicked', (e) => console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(colorId) + ' with color ID ' + colorId))
-
+        this.viewport.on('clicked', this.clickPixel) 
 
         document.getElementById("selector").addEventListener("pointerdown", e => {
-            colorId = e.target.id
-            document.getElementById("currcolor").style.backgroundColor = getColor(colorId)
+            this.colorId = parseInt(e.target.id)
+            document.getElementById("currcolor").style.backgroundColor = getColor(this.colorId)
         })
 
 
@@ -46,6 +48,28 @@ export default class View {
         const texture = PIXI.Texture.fromBuffer(pixels, 1000, 1000)
         const sprite = new PIXI.Sprite(texture);
         this.viewport.addChild(sprite)
+    }
+
+    clickPixel = (e) => {
+        console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(this.colorId) + ' with color ID ' + this.colorId)
+        // console.log(request)
+        const reqBody = {
+            x: Math.floor(e.world.x),
+            y: Math.floor(e.world.y),
+            color: this.colorId
+        }
+
+        const CORSheaders = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+            "crossorigin": true
+        }
+          
+        request.put({json: true, body: reqBody, uri: "https://cors-anywhere.herokuapp.com/"+LAMDA_URL, headers: CORSheaders, }, (err, res, body)=> {
+            if (err) console.log(err)
+            if (res) console.log(res)
+        })
     }
 
 }
