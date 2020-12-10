@@ -61,12 +61,12 @@ wss.on('connection', function (ws) {
 	ws.on('pong', heartbeat);
 
 	// send initial board: this is slow!!!
-//	for (x = 0; x < DIM; x++) {
-//		for (y = 0; y < DIM; y++) {
-//			var o = { 'x': x, 'y': y, 'r': board[x][y].r, 'g': board[x][y].g, 'b': board[x][y].b };
-//			ws.send(JSON.stringify(o));
-//		}
-//	}
+	//	for (x = 0; x < DIM; x++) {
+	//		for (y = 0; y < DIM; y++) {
+	//			var o = { 'x': x, 'y': y, 'r': board[x][y].r, 'g': board[x][y].g, 'b': board[x][y].b };
+	//			ws.send(JSON.stringify(o));
+	//		}
+	//	}
 
 
 	getBitfield((err, data) => {
@@ -109,53 +109,15 @@ if (app.get('env') === 'production') {
 
 const chunkSize = 4 * DIM * DIM / 10 // 400,000 bits
 const batchRequestNum = chunkSize / 64 // 6,250 requests
-console.log("chunkSize", chunkSize)
-console.log("batchRequestNum", batchRequestNum)
-function setPixel(pixel, callback){
-	const offset = pixel.y * DIM + pixel.x
-	client.bitfield('place', 'SET', 'u4', '#'+offset, pixel.r % 16, callback)
-}
-
-function getBitfield(callback){
-	const bitfield = []
-        const batchPromises = []
-        // to save memory, use 10 separate batch gets
-        for (let chunk = 0; chunk < 10; chunk++) {
-                // construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
-		const batch = client.batch()
-                const batchProm = new Promise((res, rej) => {
-                        for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'GET', 'i64', '#' + ((chunk * batchRequestNum) + i))
-                        batch.exec((err, reply) => {
-                        	if (err) rej(err)
-                                else {console.log(reply);res(reply)}
-                        })
-                })
-                batchPromises.push(batchProm)
-        }
-        // upon resolving all batch writes, flatten results and store into an array
-        Promise.all(batchPromises).then(result => {
-		result.forEach(el => {
-			console.log(el.length)
-                        bitfield.push(el.flat())
-                })
-		console.log(bitfield.flat().length)
-                callback(null, bitfield.flat())
-        }).catch(err => callback(err, null))
-}
-
-// retrieve bitfield from redis (return array of 64bit signed ints, each int storeing 16 pixels)
-app.get("/bitfield", (req, res) => {
-	/**
+function getBitfield(callback) {
 	const bitfield = []
 	const batchPromises = []
-	const batch = client.batch()
-	let count = 0
 	// to save memory, use 10 separate batch gets
 	for (let chunk = 0; chunk < 10; chunk++) {
 		// construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
+		const batch = client.batch()
 		const batchProm = new Promise((res, rej) => {
-			for (let i = 0; i < pixelBatchsPerChunk; i++) batch.bitfield('place', 'GET', 'i64', '#' + (chunk * chunkSize + i))    
-        		count += pixelBatchsPerChunk
+			for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'GET', 'i64', '#' + ((chunk * batchRequestNum) + i))
 			batch.exec((err, reply) => {
 				if (err) rej(err)
 				else res(reply)
@@ -166,11 +128,14 @@ app.get("/bitfield", (req, res) => {
 	// upon resolving all batch writes, flatten results and store into an array
 	Promise.all(batchPromises).then(result => {
 		result.forEach(el => {
-			bitfield.push(el)
+			bitfield.push(el.flat())
 		})
-		res.send(bitfield.flat(3))
-	}).catch(err => res.send(err))
-	**/
+		callback(null, bitfield.flat())
+	}).catch(err => callback(err, null))
+}
+
+// retrieve bitfield from redis (return array of 64bit signed ints, each int storeing 16 pixels)
+app.get("/bitfield", (req, res) => {
 	getBitfield((err, data) => {
 		if (err) throw new Error(err)
 		else res.send(data)

@@ -3,3 +3,5 @@ place/client/node_modules/*
 place/client/.cache/*
 place/client/*.js~
 place/client/dist/
+place/lambda/place-update-bitfield/node_modules
+place/lambda/place-update-bitfield/function.zip
