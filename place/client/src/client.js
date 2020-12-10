@@ -11,30 +11,29 @@ socket.onopen = (event) => {
 }
 
 var uintc8 = new Uint8ClampedArray(4 * 1000000); 
-var uintc82 = new Uint8ClampedArray(4 * 1000000); 
 
 socket.onmessage = (event) => {
-    const bufferPromise = event.data.arrayBuffer()
-    bufferPromise.then((data) => {
-        const bit64Array = new Uint32Array(data)
-        console.log(bit64Array)
-        for (let i = 0; i < 125000; i++) {
-        // for (let i = 0; i < 1; i++) {
-            const colors = convertToColors(bit64Array[i])
-            if (i < 2) console.log(colors)
-            for (let j = 0; j < 8; j++) {
-                const pixels = convertToRGBPixel(colors[j])
-                for (let k = 0; k < 4; k++) {
-                    uintc8[i*32 + j*4 + k] = pixels[k]
+    if (event.data instanceof Blob) {
+        // handle entire board
+        const bufferPromise = event.data.arrayBuffer()
+        bufferPromise.then((data) => {
+            const bit64Array = new Uint32Array(data)
+            for (let i = 0; i < 125000; i++) {
+                const colors = convertToColors(bit64Array[i])
+                for (let j = 0; j < 8; j++) {
+                    const pixels = convertToRGBPixel(colors[j])
+                    for (let k = 0; k < 4; k++) {
+                        uintc8[i*32 + j*4 + k] = pixels[k]
+                    }
                 }
+                
             }
-            
-        }
-        // for (let i = 0; i < 4; i++) {
-        //     // console.log(uintc8[i])
-        // }
-        app.renderInitialMap(uintc8)
-    })
+            app.renderInitialMap(uintc8)
+        })
+    } else {
+        // handle pixel updates
+        console.log(event.data)
+    }
 }
 
 
