@@ -53058,12 +53058,12 @@ var View = /*#__PURE__*/function () {
   function View() {
     _classCallCheck(this, View);
 
+    var colorId = 0;
     this.app = new PIXI.Application({
       width: window.innerWidth,
       height: window.innerHeight,
       backgroundColor: 0x000000
-    }); // this.app = new PIXI.Application({ width: 1000, height: 1000, backgroundColor: 0x000000})
-
+    });
     this.viewport = new _pixiViewport.Viewport({
       screenWidth: window.innerWidth,
       screenHeight: window.innerHeight,
@@ -53082,6 +53082,13 @@ var View = /*#__PURE__*/function () {
       minScale: 1
     });
     document.body.appendChild(this.app.view);
+    this.viewport.on('clicked', function (e) {
+      return console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(colorId) + ' with color ID ' + colorId);
+    });
+    document.getElementById("selector").addEventListener("pointerdown", function (e) {
+      colorId = e.target.id;
+      document.getElementById("currcolor").style.backgroundColor = getColor(colorId);
+    });
   }
 
   _createClass(View, [{
@@ -53100,7 +53107,11 @@ var View = /*#__PURE__*/function () {
 exports.default = View;
 
 function getColor(colorId) {
-  var colors = [0xFFFFFF, 0xE4E4E4, 0x888888, 0x222222, 0xFFA7D1, 0xE50000, 0xE59500, 0xA06A42, 0xE5D900, 0x94E044, 0x02BE01, 0x00D3DD, 0x0083C7, 0x0000EA, 0xCF6EE4, 0x820080];
+  var colors = ["#FFFFFF", //white
+  "#E4E4E4", //white
+  "#888888", //grey
+  "#222222", //dark grey
+  "#FFA7D1", "#E50000", "#E59500", "#A06A42", "#E5D900", "#94E044", "#02BE01", "#00D3DD", "#0083C7", "#0000EA", "#CF6EE4", "#820080"];
 
   if (colorId > 0 && colorId < 16) {
     return colors[colorId];
@@ -53218,7 +53229,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54166" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60789" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

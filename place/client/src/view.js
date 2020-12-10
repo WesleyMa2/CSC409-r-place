@@ -6,10 +6,10 @@ if(!PIXI.utils.isWebGLSupported()){
   type = "canvas"
 }
 
-export default class View {
-    constructor() {       
+export default class View {    
+    constructor() {      
+        let colorId = 0; 
         this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, backgroundColor: 0x000000})
-        // this.app = new PIXI.Application({ width: 1000, height: 1000, backgroundColor: 0x000000})
 
         this.viewport = new Viewport({
             screenWidth: window.innerWidth,
@@ -27,7 +27,18 @@ export default class View {
         .clamp({ direction: 'all'})
         .clampZoom({ maxScale: 32, minScale: 1})
 
+
         document.body.appendChild(this.app.view);
+
+        this.viewport.on('clicked', (e) => console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(colorId) + ' with color ID ' + colorId))
+
+
+        document.getElementById("selector").addEventListener("pointerdown", e => {
+            colorId = e.target.id
+            document.getElementById("currcolor").style.backgroundColor = getColor(colorId)
+        })
+
+
     }
 
     renderInitialMap(pixels) {
@@ -36,26 +47,27 @@ export default class View {
         const sprite = new PIXI.Sprite(texture);
         this.viewport.addChild(sprite)
     }
+
 }
 
 function getColor(colorId) {
     const colors = [
-        0xFFFFFF,
-        0xE4E4E4,
-        0x888888,
-        0x222222,
-        0xFFA7D1,
-        0xE50000,
-        0xE59500,
-        0xA06A42,
-        0xE5D900,
-        0x94E044,
-        0x02BE01,
-        0x00D3DD,
-        0x0083C7,
-        0x0000EA,
-        0xCF6EE4,
-        0x820080
+        "#FFFFFF",   //white
+        "#E4E4E4",   //white
+        "#888888",   //grey
+        "#222222",   //dark grey
+        "#FFA7D1",
+        "#E50000",
+        "#E59500",
+        "#A06A42",
+        "#E5D900",
+        "#94E044",
+        "#02BE01",
+        "#00D3DD",
+        "#0083C7",
+        "#0000EA",
+        "#CF6EE4",
+        "#820080"
     ]
 
     if (colorId > 0 && colorId < 16) {
