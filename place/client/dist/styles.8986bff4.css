@@ -29,7 +29,8 @@ button {
     width: 480px;
     height: 100px;
     position: absolute;
-    bottom: 0;
+    bottom: 10;
+    left: 10;
 }
 
 #currcolor {
@@ -37,7 +38,7 @@ button {
     height: 100px;
     background-color: #FFFFFF;
     position: absolute;
-    bottom: 0;
+    bottom: 10;
     left: 440px;
     border-radius: 3px;
 }

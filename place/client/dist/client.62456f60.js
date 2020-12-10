@@ -53062,7 +53062,7 @@ var View = /*#__PURE__*/function () {
     this.app = new PIXI.Application({
       width: window.innerWidth,
       height: window.innerHeight,
-      backgroundColor: 0x000000
+      backgroundColor: 0x423f3f
     });
     this.viewport = new _pixiViewport.Viewport({
       screenWidth: window.innerWidth,
@@ -53229,7 +53229,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60789" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "60816" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

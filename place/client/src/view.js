@@ -9,7 +9,7 @@ if(!PIXI.utils.isWebGLSupported()){
 export default class View {    
     constructor() {      
         let colorId = 0; 
-        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, backgroundColor: 0x000000})
+        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, backgroundColor: 0x423f3f})
 
         this.viewport = new Viewport({
             screenWidth: window.innerWidth,
