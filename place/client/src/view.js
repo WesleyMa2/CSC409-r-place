@@ -1,19 +1,18 @@
 import * as PIXI from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
+import * as request from 'request'
 
-export default class View {
-    constructor() {
-        let type = "WebGL"
-        if(!PIXI.utils.isWebGLSupported()){
-          type = "canvas"
-        }
-        
-        this.canvas = document.getElementById('canvas')
-        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, view: this.canvas, backgroundColor: 0xFFFFFF})
+const LAMDA_URL = 'https://fsc2uv90z3.execute-api.us-east-1.amazonaws.com/prod'
 
-        this.zoomScale = 4
-        this.isMouseDown = false
-        this.mouseDownPos = {x: 0, y: 0}
+let type = "WebGL"
+if(!PIXI.utils.isWebGLSupported()){
+  type = "canvas"
+}
+
+export default class View {    
+    constructor() {      
+        this.colorId = 0; 
+        this.app = new PIXI.Application({ width: window.innerWidth, height: window.innerHeight, backgroundColor: 0x423f3f})
 
         this.viewport = new Viewport({
             screenWidth: window.innerWidth,
@@ -32,87 +31,67 @@ export default class View {
         .clampZoom({ maxScale: 32, minScale: 1})
 
 
-        // register zoom + scroll handlers
-        // this.canvas.addEventListener("wheel", this.zoom)
-        // this.canvas.addEventListener('mousedown', this.mouseDown)
-        // this.canvas.addEventListener('mousemove', this.mouseMove)
-        // this.canvas.addEventListener('mouseup', this.mouseUp)
+        document.body.appendChild(this.app.view);
+
+        this.viewport.on('clicked', this.clickPixel) 
+
+        document.getElementById("selector").addEventListener("pointerdown", e => {
+            this.colorId = parseInt(e.target.id)
+            document.getElementById("currcolor").style.backgroundColor = getColor(this.colorId)
+        })
+
+
     }
 
     renderInitialMap(pixels) {
-        // const canvas = document.createElement('canvas');
-        // canvas.style.imageRendering = 'pixelated'
-        // this.ctx = canvas.getContext('2d')
-        // const image = new ImageData(pixels, 1000, 1000)
-        // this.ctx.putImageData(image, 0, 0)
+        console.log('rendering ma')
         const texture = PIXI.Texture.fromBuffer(pixels, 1000, 1000)
         const sprite = new PIXI.Sprite(texture);
         this.viewport.addChild(sprite)
     }
 
-    zoom = (event) => {
-        event.preventDefault()
-        const zoomEl = document.getElementById('zoom')
-
-        // zoom in
-        if (event.deltaY < 0) {
-            this.zoomScale = 40
-        } else {
-            this.zoomScale = 4
-        }
-        zoomEl.style.transform = `scale(${this.zoomScale})`;
-    }
-
-    mouseDown = (event) => {
-        event.preventDefault()
-        const panEl = document.getElementById('pan')
-
-        if (event.button === 0) {
-            this.isMouseDown = true
-            this.mouseDownPos = { x: event.screenX, y: event.screenY}
-            console.log(panEl.style.transform)
+    clickPixel = (e) => {
+        console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(this.colorId) + ' with color ID ' + this.colorId)
+        // console.log(request)
+        const reqBody = {
+            x: Math.floor(e.world.x),
+            y: Math.floor(e.world.y),
+            color: this.colorId
         }
 
-    }
-
-    mouseMove = (event) => {
-        event.preventDefault()
-        const panEl = document.getElementById('pan')
-        if (this.isMouseDown) {
-            const xOffset = event.screenX - this.mouseDownPos.x
-            const yOffset = event.screenY - this.mouseDownPos.y
-            panEl.style.transform = `translate(${xOffset}px, ${yOffset}px)`
+        const CORSheaders = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+            "crossorigin": true
         }
+          
+        request.put({json: true, body: reqBody, uri: "https://cors-anywhere.herokuapp.com/"+LAMDA_URL, headers: CORSheaders, }, (err, res, body)=> {
+            if (err) console.log(err)
+            if (res) console.log(res)
+        })
     }
 
-    mouseUp = (event) => {
-        event.preventDefault()
-        const panEl = document.getElementById('pan')
-
-        if (event.button === 0) {
-            this.isMouseDown = false
-        }
-    }
 }
 
 function getColor(colorId) {
     const colors = [
-        0xFFFFFF,
-        0xE4E4E4,
-        0x888888,
-        0x222222,
-        0xFFA7D1,
-        0xE50000,
-        0xE59500,
-        0xA06A42,
-        0xE5D900,
-        0x94E044,
-        0x02BE01,
-        0x00D3DD,
-        0x0083C7,
-        0x0000EA,
-        0xCF6EE4,
-        0x820080
+        "#FFFFFF",   //white
+        "#E4E4E4",   //white
+        "#888888",   //grey
+        "#222222",   //dark grey
+        "#FFA7D1",
+        "#E50000",
+        "#E59500",
+        "#A06A42",
+        "#E5D900",
+        "#94E044",
+        "#02BE01",
+        "#00D3DD",
+        "#0083C7",
+        "#0000EA",
+        "#CF6EE4",
+        "#820080"
     ]
 
     if (colorId > 0 && colorId < 16) {

@@ -70,8 +70,14 @@ wss.on('connection', function (ws) {
 
 
 	getBitfield((err, data) => {
-		if (err) ws.send('server error!')
-		else ws.send(data)
+		if (err){  
+			console.log(err)
+			ws.send('server error!') 
+		} else {
+			const buffer = new Int32Array(data.flat()).buffer
+			console.log(buffer.length)
+			ws.send(buffer)
+		}
 	})
 
 	// when we get a message from the client
@@ -108,8 +114,42 @@ if (app.get('env') === 'production') {
 }
 
 const chunkSize = 4 * DIM * DIM / 10 // 400,000 bits
-const batchRequestNum = chunkSize / 64 // 6,250 requests
-function getBitfield(callback) {
+const batchRequestNum = chunkSize / 32 // 6,250 requests
+console.log("chunkSize", chunkSize)
+console.log("batchRequestNum", batchRequestNum)
+function setPixel(pixel, callback){
+	const offset = pixel.y * DIM + pixel.x
+	client.bitfield('place', 'SET', 'u4', '#'+offset, pixel.r % 16, callback)
+}
+
+function getBitfield(callback){
+	const bitfield = []
+        const batchPromises = []
+        // to save memory, use 10 separate batch gets
+        for (let chunk = 0; chunk < 10; chunk++) {
+                // construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
+		const batch = client.batch()
+                const batchProm = new Promise((res, rej) => {
+                        for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'GET', 'u32', '#' + ((chunk * batchRequestNum) + i))
+                        batch.exec((err, reply) => {
+                        	if (err) rej(err)
+                                else {res(reply)}
+                        })
+                })
+                batchPromises.push(batchProm)
+        }
+        // upon resolving all batch writes, flatten results and store into an array
+        Promise.all(batchPromises).then(result => {
+		result.forEach(el => {
+                        bitfield.push(el.flat())
+                })
+                callback(null, bitfield.flat())
+        }).catch(err => callback(err, null))
+}
+
+// retrieve bitfield from redis (return array of 64bit signed ints, each int storeing 16 pixels)
+app.get("/bitfield", (req, res) => {
+	/**
 	const bitfield = []
 	const batchPromises = []
 	// to save memory, use 10 separate batch gets

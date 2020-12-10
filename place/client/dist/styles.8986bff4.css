@@ -1,5 +1,4 @@
 body {
-    background-color: #1c2863 ;
     margin: 0;
 }
 
@@ -7,6 +6,12 @@ body {
     color: white;
     display: flex;
     justify-content: center;
+}
+
+button {
+    width:50px;
+    height:50px;
+    border-radius: 3px;
 }
 
 #view {
@@ -18,6 +23,24 @@ body {
 #canvas {
     background-color: white;
     image-rendering: pixelated;
+}
+
+#selector {
+    width: 480px;
+    height: 100px;
+    position: absolute;
+    bottom: 10;
+    left: 10;
+}
+
+#currcolor {
+    width: 100px;
+    height: 100px;
+    background-color: #FFFFFF;
+    position: absolute;
+    bottom: 10;
+    left: 440px;
+    border-radius: 3px;
 }
 
 @-moz-document url-prefix() {
