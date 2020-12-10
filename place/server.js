@@ -15,13 +15,6 @@ const client = redis.createClient({
 	port: '6379'
 });
 
-// var board = new Array(DIM);
-// for (var x = 0; x < DIM; x++) {
-// 	board[x] = new Array(DIM);
-// 	for (var y = 0; y < DIM; y++) {
-// 		board[x][y] = { 'r': 255, 'g': 255, 'b': 255 };
-// 	}
-//  }
 
 wss.on('close', function () {
 	console.log('disconnected');
@@ -59,15 +52,6 @@ wss.on('connection', function (ws) {
 	// heartbeat
 	ws.isAlive = true;
 	ws.on('pong', heartbeat);
-
-	// send initial board: this is slow!!!
-	//	for (x = 0; x < DIM; x++) {
-	//		for (y = 0; y < DIM; y++) {
-	//			var o = { 'x': x, 'y': y, 'r': board[x][y].r, 'g': board[x][y].g, 'b': board[x][y].b };
-	//			ws.send(JSON.stringify(o));
-	//		}
-	//	}
-
 
 	getBitfield((err, data) => {
 		if (err){  
@@ -115,8 +99,6 @@ if (app.get('env') === 'production') {
 
 const chunkSize = 4 * DIM * DIM / 10 // 400,000 bits
 const batchRequestNum = chunkSize / 32 // 6,250 requests
-console.log("chunkSize", chunkSize)
-console.log("batchRequestNum", batchRequestNum)
 function setPixel(pixel, callback){
 	const offset = pixel.y * DIM + pixel.x
 	client.bitfield('place', 'SET', 'u4', '#'+offset, pixel.r % 16, callback)
@@ -145,33 +127,6 @@ function getBitfield(callback){
                 })
                 callback(null, bitfield.flat())
         }).catch(err => callback(err, null))
-}
-
-// retrieve bitfield from redis (return array of 64bit signed ints, each int storeing 16 pixels)
-app.get("/bitfield", (req, res) => {
-	/**
-	const bitfield = []
-	const batchPromises = []
-	// to save memory, use 10 separate batch gets
-	for (let chunk = 0; chunk < 10; chunk++) {
-		// construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
-		const batch = client.batch()
-		const batchProm = new Promise((res, rej) => {
-			for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'GET', 'i64', '#' + ((chunk * batchRequestNum) + i))
-			batch.exec((err, reply) => {
-				if (err) rej(err)
-				else res(reply)
-			})
-		})
-		batchPromises.push(batchProm)
-	}
-	// upon resolving all batch writes, flatten results and store into an array
-	Promise.all(batchPromises).then(result => {
-		result.forEach(el => {
-			bitfield.push(el.flat())
-		})
-		callback(null, bitfield.flat())
-	}).catch(err => callback(err, null))
 }
 
 // retrieve bitfield from redis (return array of 64bit signed ints, each int storeing 16 pixels)
