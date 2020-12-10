@@ -70,8 +70,14 @@ wss.on('connection', function (ws) {
 
 
 	getBitfield((err, data) => {
-		if (err) ws.send('server error!')
-		else ws.send(data)
+		if (err){  
+			console.log(err)
+			ws.send('server error!') 
+		} else {
+			const buffer = new Int32Array(data.flat()).buffer
+			console.log(buffer.length)
+			ws.send(buffer)
+		}
 	})
 
 	// when we get a message from the client
@@ -108,7 +114,7 @@ if (app.get('env') === 'production') {
 }
 
 const chunkSize = 4 * DIM * DIM / 10 // 400,000 bits
-const batchRequestNum = chunkSize / 64 // 6,250 requests
+const batchRequestNum = chunkSize / 32 // 6,250 requests
 console.log("chunkSize", chunkSize)
 console.log("batchRequestNum", batchRequestNum)
 function setPixel(pixel, callback){
@@ -124,10 +130,10 @@ function getBitfield(callback){
                 // construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
 		const batch = client.batch()
                 const batchProm = new Promise((res, rej) => {
-                        for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'GET', 'i64', '#' + ((chunk * batchRequestNum) + i))
+                        for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'GET', 'u32', '#' + ((chunk * batchRequestNum) + i))
                         batch.exec((err, reply) => {
                         	if (err) rej(err)
-                                else {console.log(reply);res(reply)}
+                                else {res(reply)}
                         })
                 })
                 batchPromises.push(batchProm)
@@ -135,10 +141,8 @@ function getBitfield(callback){
         // upon resolving all batch writes, flatten results and store into an array
         Promise.all(batchPromises).then(result => {
 		result.forEach(el => {
-			console.log(el.length)
                         bitfield.push(el.flat())
                 })
-		console.log(bitfield.flat().length)
                 callback(null, bitfield.flat())
         }).catch(err => callback(err, null))
 }

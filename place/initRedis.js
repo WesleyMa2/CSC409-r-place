@@ -10,13 +10,13 @@ client.on("error", function(error, reply) {
   else console.log(reply)
 })
 const batch = client.batch();
-const chunkSize = DIM*DIM/10
-const pixelBatchsPerChunk = chunkSize/(64/4)
+const chunkSize = 4 *DIM*DIM/10
+const batchRequestNum = chunkSize/ 32
 let count = 0;
 // Resets bitfield
 for (let chunk = 0; chunk < 10; chunk++){
-  for (let i = 0; i < pixelBatchsPerChunk; i++) batch.bitfield('place', 'SET', 'i64', '#'+(chunk*chunkSize + i), 0)
-  count += pixelBatchsPerChunk  
+  for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'SET', 'u32', '#'+(chunk*batchRequestNum + i), 4294967295)
+  count += batchRequestNum 
   batch.exec((reply, err) => {
     console.log('Set '+count+'pixels to 0')
     if (err) console.log(err)
