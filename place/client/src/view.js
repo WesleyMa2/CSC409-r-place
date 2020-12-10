@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js-legacy'
+import * as PIXI from 'pixi.js'
 import { Viewport } from 'pixi-viewport'
 
 export default class View {
