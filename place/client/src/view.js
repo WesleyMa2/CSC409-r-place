@@ -50,7 +50,6 @@ export default class View {
     }
 
     clickPixel = (e) => {
-        // console.log('clicked (' + Math.floor(e.world.x) + ',' + Math.floor(e.world.y) + ') and sending color ' + getColor(this.colorId) + ' with color ID ' + this.colorId)
         const reqBody = {
             x: Math.floor(e.world.x),
             y: Math.floor(e.world.y),
@@ -65,9 +64,10 @@ export default class View {
         }
           
         request.put({json: true, body: reqBody, uri: "https://cors-anywhere.herokuapp.com/"+LAMDA_URL, headers: CORSheaders, }, (err, res, body)=> {
-            if (err) console.log(err)
-            if (res) {
-                console.log('Pixel update successful')
+            if (err) alert(err)
+            if (res) console.log(res)
+            if(res.statusCode !== 200) {
+                alert(res.body.body)
             }
         })
     }
@@ -94,7 +94,7 @@ function getColor(colorId) {
         "#820080"
     ]
 
-    if (colorId > 0 && colorId < 16) {
+    if (colorId >= 0 && colorId < 16) {
         return colors[colorId]
     } else {
         return 0x222222

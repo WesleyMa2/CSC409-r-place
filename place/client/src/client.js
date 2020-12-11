@@ -10,6 +10,10 @@ socket.onopen = (event) => {
     console.log('connection opened!')
 }
 
+socket.addEventListener('error', function (event) {
+    alert('WebSocket error: ', event);
+});
+
 
 socket.onmessage = (event) => {
     if (event.data instanceof Blob) {
@@ -54,6 +58,12 @@ function convertToColors(num) {
      return val
 }
 
+// each int, convert to binary and split into 4 pixels
+// each pixel is 4 bits 1000 0100 0010 0001 = 56240
+// AND 0000 0000 0000 1111 
+// BITSHIFT 
+// map 16 colors to [r, g, b, a]
+
 function convertToRGBPixel(colorID) {
     const colorMap = [
         [255, 255, 255, 255], // white
@@ -76,15 +86,6 @@ function convertToRGBPixel(colorID) {
     return colorMap[colorID]
 }
 
-// generate random pixels
-// var uintc8 = new Uint8ClampedArray(4 * 1000000); 
 
 
-
-
-// each int, convert to binary and split into 4 pixels
-// each pixel is 4 bits 1000 0100 0010 0001 = 56240
-// AND 0000 0000 0000 1111 
-// BITSHIFT 
-// map 16 colors to [r, g, b, a]
 
