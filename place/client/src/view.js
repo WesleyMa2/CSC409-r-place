@@ -64,9 +64,9 @@ export default class View {
         }
           
         request.put({json: true, body: reqBody, uri: "https://cors-anywhere.herokuapp.com/"+LAMDA_URL, headers: CORSheaders, }, (err, res, body)=> {
-            if (err) alert(err)
+            if (err) { console.error(err)}
             if (res) console.log(res)
-            if(res.statusCode !== 200) {
+            if(res.body.statusCode !== 200) {
                 alert(res.body.body)
             }
         })
