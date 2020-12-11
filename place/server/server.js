@@ -6,6 +6,8 @@ var app = express();
 const SOCKET_PORT = 8081
 const HTTP_PORT = 8080
 const wss = new WebSocket.Server({ port: SOCKET_PORT });
+let lastUpdate = 0
+let cachedBitfield = null;
 
 // Redis
 const redis = require('redis')
@@ -43,14 +45,21 @@ wss.on('connection', function (ws) {
 	// heartbeat
 	ws.isAlive = true;
 	ws.on('pong', heartbeat);
+	
+	const currTime = new Date().getTime()
+	if ((currTime - lastUpdate) < 100){
+		ws.send(cachedBitfield)
+		return
+	}
 
 	getBitfield((err, data) => {
-		if (err){  
+		if (err) {
 			console.log(err)
-			ws.send('server error!') 
+			ws.send('server error!')
 		} else {
-			const buffer = new Int32Array(data.flat()).buffer
-			ws.send(buffer)
+			lastUpdate = new Date().getTime()
+			cachedBitfield = new Int32Array(data.flat()).buffer
+			ws.send(cachedBitfield)
 		}
 	})
 });
@@ -75,34 +84,35 @@ subscriber.on("message", (channel, message) => {
 })
 subscriber.subscribe("pixel-updates")
 
-function getBitfield(callback){
+function getBitfield(callback) {
 	const bitfield = []
-        const batchPromises = []
-        // to save memory, use 10 separate batch gets
-        for (let chunk = 0; chunk < 10; chunk++) {
-                // construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
+	const batchPromises = []
+	// to save memory, use 10 separate batch gets
+	for (let chunk = 0; chunk < 10; chunk++) {
+		// construct each batch to contain <pixelBatchsPerChunk> amount of 64b ints
 		const batch = client.batch()
-                const batchProm = new Promise((res, rej) => {
-                        for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'GET', 'u32', '#' + ((chunk * batchRequestNum) + i))
-                        batch.exec((err, reply) => {
-                        	if (err) rej(err)
-                                else {res(reply)}
-                        })
-                })
-                batchPromises.push(batchProm)
-        }
-        // upon resolving all batch writes, flatten results and store into an array
-        Promise.all(batchPromises).then(result => {
+		const batchProm = new Promise((res, rej) => {
+			for (let i = 0; i < batchRequestNum; i++) batch.bitfield('place', 'GET', 'u32', '#' + ((chunk * batchRequestNum) + i))
+			batch.exec((err, reply) => {
+				if (err) rej(err)
+				else { res(reply) }
+			})
+		})
+		batchPromises.push(batchProm)
+	}
+	// upon resolving all batch writes, flatten results and store into an array
+	Promise.all(batchPromises).then(result => {
 		result.forEach(el => {
-                        bitfield.push(el.flat())
-                })
-                callback(null, bitfield.flat())
-        }).catch(err => callback(err, null))
+			bitfield.push(el.flat())
+		})
+		callback(null, bitfield.flat())
+	}).catch(err => callback(err, null))
 }
 // ping function for aws loadpalance healthchecks
 app.get("/ping", (req, res) => {
 	res.sendStatus(200)
 })
+
 
 // retrieve bitfield from redis (return array of 64bit signed ints, each int storeing 16 pixels)
 app.get("/bitfield", (req, res) => {
