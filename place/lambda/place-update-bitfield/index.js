@@ -28,15 +28,15 @@ exports.handler = async (event, context) => {
         // check that user isn't rate limited currently
         const ip = event.context['source-ip']
         const isLimited = await getAsync(ip)
-        // if (isLimited) {
-        //     return {
-        //         statusCode: 429,
-        //         body: `Rate limited (${ip})`,
-        //     }
-        // } else {
-        //     await setAsync(ip, 0)
-        //     await expireAsync(ip, 10)
-        // }
+        if (isLimited) {
+            return {
+                statusCode: 429,
+                body: `Rate limited (${ip})`,
+            }
+        } else {
+            await setAsync(ip, 0)
+            await expireAsync(ip, 10)
+        }
         // update the bitfield
         const offset = y * DIM + x
         await bitfieldAsync('place', 'SET', 'u4', '#' + offset, color)

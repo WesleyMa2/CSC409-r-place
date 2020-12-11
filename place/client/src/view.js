@@ -65,7 +65,6 @@ export default class View {
           
         request.put({json: true, body: reqBody, uri: LAMDA_URL, headers: CORSheaders, }, (err, res, body)=> {
             if (err) { console.error(err)}
-            if (res) console.log(res)
             if(res.body.statusCode !== 200) {
                 alert(res.body.body)
             }
