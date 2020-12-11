@@ -7,8 +7,8 @@ read -s
 PASSWORD=$REPLY
 ssh -i "~/.ssh/place_server.pem" $1 \
         "sudo yum update -y && sudo yum install git && \
-        cd && git clone https://$USERNAME:$PASSWORD@mcsscm.utm.utoronto.ca:9999/git/409/20f/repo_a3group37.git &&\
-        cd ~/repo_a3group37/place/server && chmod 700 *\
+        cd && git clone https://$USERNAME:$PASSWORD@mcsscm.utm.utoronto.ca:9999/git/409/20f/repo_a3group37.git && \
+        cd ~/repo_a3group37/place/server && chmod 700 * &&\
         ./install_dependencies.sh && \
         ./start_server.sh
         "
