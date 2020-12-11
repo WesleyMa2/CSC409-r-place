@@ -5,3 +5,4 @@ place/client/*.js~
 place/client/dist/*
 place/lambda/place-update-bitfield/node_modules
 place/lambda/place-update-bitfield/function.zip
+*.zip
