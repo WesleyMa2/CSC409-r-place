@@ -1,6 +1,6 @@
 echo "Installing dependencies"
 curl -sL https://rpm.nodesource.com/setup_14.x | sudo bash -
-sudo yum install nodejs
+sudo yum install nodejs -y
 npm install
 sudo npm install pm2@latest -g
 echo "Redirecting ports"
