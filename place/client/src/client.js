@@ -2,9 +2,9 @@ import View from './view'
 
 let app = new View()
 
-const ec2URL = "ec2-54-234-48-204.compute-1.amazonaws.com"
+const ec2URL = "place-websocket-load-balancer-98a1fa38068ef0fe.elb.us-east-1.amazonaws.com"
 
-const socket = new WebSocket(`ws://${ec2URL}:8081`)
+const socket = new WebSocket(`ws://${ec2URL}`)
 
 socket.onopen = (event) => {
     console.log('connection opened!')
