@@ -79,7 +79,6 @@ const batchRequestNum = chunkSize / 32 // 6,250 requests
 
 // subscribe to redis for pixel updates
 subscriber.on("message", (channel, message) => {
-	console.log(channel, message)
 	wss.broadcast(message)
 })
 subscriber.subscribe("pixel-updates")
