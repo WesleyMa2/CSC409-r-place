@@ -55,7 +55,7 @@ socket.onmessage = (event) => {
             }
             app.renderMap(uintc8)
         } else {
-            const update = { index:index, colors: pixels }
+            const update = { index:index, pixels: pixels }
             queuedUpdates.push(update)
         }
     }
