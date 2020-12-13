@@ -15,9 +15,12 @@ socket.addEventListener('error', function (event) {
 });
 
 
+let mapRendered = false
+let queuedUpdates = []
+const uintc8 = new Uint8ClampedArray(4 * 1000000); 
+
 socket.onmessage = (event) => {
     if (event.data instanceof Blob) {
-        const uintc8 = new Uint8ClampedArray(4 * 1000000); 
         // handle entire board
         const bufferPromise = event.data.arrayBuffer()
         bufferPromise.then((data) => {
@@ -30,20 +33,31 @@ socket.onmessage = (event) => {
                         uintc8[i*32 + j*4 + k] = pixels[k]
                     }
                 }
-                
             }
+            queuedUpdates.forEach((update) => {
+                let index, pixels
+                ({ index, pixels } = update)
+                for (let k = 0; k < 4; k++) {
+                    uintc8[(4*index) + k] = pixels[k]
+                }
+            })
             app.renderMap(uintc8)
+            mapRendered = true
         })
     } else {
-        const uintc8 = new Uint8ClampedArray(4 * 1000000); 
         const s = event.data.split(":")
         const index = s[0]
         const color = s[1]
         const pixels = convertToRGBPixel(color)
-        for (let k = 0; k < 4; k++) {
-            uintc8[(4*index) + k] = pixels[k]
+        if (mapRendered) {
+            for (let k = 0; k < 4; k++) {
+                uintc8[(4*index) + k] = pixels[k]
+            }
+            app.renderMap(uintc8)
+        } else {
+            const update = { index:index, colors: pixels }
+            queuedUpdates.push(update)
         }
-        app.renderMap(uintc8)
     }
 }
 

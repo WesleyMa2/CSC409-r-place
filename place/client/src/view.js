@@ -30,6 +30,9 @@ export default class View {
         .clamp({ direction: 'all'})
         .clampZoom({ maxScale: 32, minScale: 1})
 
+        // set default pixel to black
+        this.colorId = 3
+
 
         document.body.appendChild(this.app.view);
 
@@ -44,9 +47,12 @@ export default class View {
     }
 
     renderMap(pixels) {
+        if (this.map) {
+            this.viewport.removeChild(this.map)
+        }
         const texture = PIXI.Texture.fromBuffer(pixels, 1000, 1000)
-        const sprite = new PIXI.Sprite(texture);
-        this.viewport.addChild(sprite)
+        this.map = new PIXI.Sprite(texture);
+        this.viewport.addChild(this.map)
     }
 
     clickPixel = (e) => {
